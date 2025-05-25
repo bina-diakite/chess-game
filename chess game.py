@@ -2,16 +2,16 @@ import pygame
 
 pygame.init()
 
-# Définition des dimensions
+
 Width, height = 760, 760
 Rows, Cols = 8, 8
 Square = Width // Rows
 
-# Création de la fenêtre
+
 fenetre = pygame.display.set_mode((Width, height))
 pygame.display.set_caption("chess game")
 
-# Chargement des images
+
 imagePionnoir = pygame.image.load("pawn-b.svg")
 imagePionblanc = pygame.image.load("pawn-w.svg")
 imageTournoir = pygame.image.load("rook-b.svg")
@@ -25,7 +25,6 @@ imageReineblanc = pygame.image.load("queen-w.svg")
 imageRoinoir = pygame.image.load("king-b.svg")
 imageRoiblanc = pygame.image.load("king-w.svg")
 
-# Définition des positions des pièces (par défaut)
 pieces = {
     (0, 0): imageTournoir,
     (1, 0): imageCavaliernoir,
@@ -61,7 +60,7 @@ pieces = {
     (7, 7): imageTourblanc,
 }
 piece_selectionne=None
-
+joueur_actuel = 'white' 
 
 def dessiner():
     global imagePionnoir, imagePionblanc, imageTournoir, imageTourblanc
@@ -78,8 +77,8 @@ def dessiner():
     for (x, y), piece in pieces.items():
         fenetre.blit(pygame.transform.scale(piece, (Square, Square)), (x * Square, y * Square))
         pygame.display.flip()
-
-    
+        
+        
    
 
 
@@ -87,10 +86,11 @@ def dessiner():
 
 def gererClavierEtSouris():
     if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1 or 2 or 3:  # 1 = clic gauche
+            if event.button == 1 or 2 or 3: 
                 x, y = pygame.mouse.get_pos()
                 col = x // Square
                 row = y // Square
+              
                 
                 
 def mouvementpion(position_piece, new_position, joueur):
@@ -107,27 +107,62 @@ def mouvementpion(position_piece, new_position, joueur):
         if y == 1 and new_x == x and new_y == y + 2 and (new_x, new_y) not in pieces:
             return True
      return False
-             
-         
+                 
+def mouvement_cavalier(position_piece, new_position):
+    x, y = position_piece
+    new_x, new_y = new_position
+    if abs(new_x - x) == 2 and abs(new_y - y) == 1 or abs(new_x - x) == 1 and abs(new_y - y) == 2:
+        return True
+    return False    
     
-    
-    
 
 
 
-
+clock = pygame.time.Clock()
 
 
 
 running = True
 while running:
     dessiner()
-    clock.tick(100)
-    
+    clock.tick(1)
+  
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-     
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1: 
+                x, y = pygame.mouse.get_pos()
+                col = x // Square
+                row = y // Square
+
+                if not piece_selectionne:
+                    if (col, row) in pieces: 
+                        piece_selectionne = (col, row)
+                        print(f"Pièce sélectionnée à la position : {piece_selectionne}")
+                    else:
+                        print("Aucune pièce à cette position.")
+                else:
+                    if (col, row) not in pieces:  
+                        if piece_selectionne in pieces: 
+                            piece_image = pieces[piece_selectionne]
+                            if piece_image == imagePionnoir or piece_image == imagePionblanc:
+                                if mouvementpion(piece_selectionne, (col, row), joueur_actuel):
+                                    pieces[(col, row)] = pieces[piece_selectionne]
+                                    del pieces[piece_selectionne]
+                                    joueur_actuel = 'black' if joueur_actuel == 'white' else 'white'
+                            elif piece_image == imageCavaliernoir or piece_image == imageCavalierblanc:
+                                if mouvement_cavalier(piece_selectionne, (col, row)):
+                                    pieces[(col, row)] = pieces[piece_selectionne]
+                                    del pieces[piece_selectionne]
+                                    joueur_actuel = 'black' if joueur_actuel == 'white' else 'white'
+                    piece_selectionne = None
+
+pygame.quit()
+
+
 
 
 
