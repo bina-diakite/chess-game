@@ -165,8 +165,3 @@ pygame.quit()
 
 
 
-
-
-pygame.quit()
-
-
