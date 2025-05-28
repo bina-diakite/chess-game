@@ -68,21 +68,20 @@ def dessiner():
     global imageReinenoir, imageReineblanc, imageRoinoir, imageRoiblanc
     global fenetre
     
-    couleurs = [pygame.Color(240, 217, 181), pygame.Color(181, 136, 99)] 
-    fenetre.fill((255, 255, 255)) 
+    couleurs = [pygame.Color(240, 217, 181), pygame.Color(181, 136, 99)]
+    fenetre.fill((255, 255, 255))
     for row in range(Rows):
         for col in range(Cols):
-            couleur = couleurs[(row + col) % 2]
-            pygame.draw.rect(fenetre, couleur, (col * Square, row * Square, Square, Square))
+            pygame.draw.rect(fenetre, couleurs[(row + col) % 2], (col * Square, row * Square, Square, Square))
     for (x, y), piece in pieces.items():
         fenetre.blit(pygame.transform.scale(piece, (Square, Square)), (x * Square, y * Square))
-        pygame.display.flip()
+    if piece_selectionne:
+        pygame.draw.rect(fenetre, (0, 255, 0), (piece_selectionne[0] * Square, piece_selectionne[1] * Square, Square, Square), 5)
+    pygame.display.flip()
+
         
         
    
-
-
-
 
 def gererClavierEtSouris():
     if event.type == pygame.MOUSEBUTTONDOWN:
@@ -118,14 +117,13 @@ def mouvement_cavalier(position_piece, new_position):
 
 
 
-clock = pygame.time.Clock()
+
 
 
 
 running = True
 while running:
     dessiner()
-    clock.tick(1)
   
 
     for event in pygame.event.get():
@@ -133,7 +131,7 @@ while running:
             running = False
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1: 
+            if event.button == 1 or 2 or 3: 
                 x, y = pygame.mouse.get_pos()
                 col = x // Square
                 row = y // Square
@@ -161,6 +159,7 @@ while running:
                     piece_selectionne = None
 
 pygame.quit()
+
 
 
 
