@@ -59,10 +59,10 @@ pieces = {
 piece_selectionne = None
 joueur_actuel = 'white'
 
-def est_blanche(piece):
+def pionblanc(piece):
     return piece in [imagePionblanc, imageTourblanc, imageFoublanc, imageCavalierblanc, imageReineblanc, imageRoiblanc]
 
-def est_noire(piece):
+def pionnoire(piece):
     return piece in [imagePionnoir, imageTournoir, imageFounoir, imageCavaliernoir, imageReinenoir, imageRoinoir]
 
 def dessiner():
@@ -118,9 +118,9 @@ def mouvementpion(position_piece, new_position, player):
     if y == ligne_depart and new_x == x and new_y == y + 2 * direction and (new_x, y + direction) not in pieces and (new_x, new_y) not in pieces:
         return True
     if abs(new_x - x) == 1 and new_y == y + direction and (new_x, new_y) in pieces:
-        if player == 'white' and est_noire(pieces[(new_x, new_y)]):
+        if player == 'white' and pionnoire(pieces[(new_x, new_y)]):
             return True
-        if player == 'black' and est_blanche(pieces[(new_x, new_y)]):
+        if player == 'black' and pionblanc(pieces[(new_x, new_y)]):
             return True
     return False
 
@@ -145,7 +145,7 @@ while running:
                 if not piece_selectionne:
                     if (col, row) in pieces:
                         piece = pieces[(col, row)]
-                        if (joueur_actuel == 'white' and est_blanche(piece)) or (joueur_actuel == 'black' and est_noire(piece)):
+                        if (joueur_actuel == 'white' and pionblanc(piece)) or (joueur_actuel == 'black' and pionnoire(piece)):
                             piece_selectionne = (col, row)
                             print(f"Pièce sélectionnée à la position : {piece_selectionne}")
                         else:
@@ -172,8 +172,8 @@ while running:
 
                         if deplacement_valide:
                             if (col, row) not in pieces or \
-                               (joueur_actuel == 'white' and est_noire(pieces.get((col, row)))) or \
-                               (joueur_actuel == 'black' and est_blanche(pieces.get((col, row)))):
+                               (joueur_actuel == 'white' and pionnoire(pieces.get((col, row)))) or \
+                               (joueur_actuel == 'black' and pionblanc(pieces.get((col, row)))):
                                 pieces[(col, row)] = pieces[piece_selectionne]
                                 del pieces[piece_selectionne]
                                 if piece_image in [imagePionnoir, imagePionblanc]:
