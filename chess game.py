@@ -2,15 +2,12 @@ import pygame
 
 pygame.init()
 
-
 Width, height = 760, 760
 Rows, Cols = 8, 8
 Square = Width // Rows
 
-
 fenetre = pygame.display.set_mode((Width, height))
 pygame.display.set_caption("chess game")
-
 
 imagePionnoir = pygame.image.load("pawn-b.svg")
 imagePionblanc = pygame.image.load("pawn-w.svg")
@@ -59,15 +56,16 @@ pieces = {
     (6, 7): imageCavalierblanc,
     (7, 7): imageTourblanc,
 }
-piece_selectionne=None
-joueur_actuel = 'white' 
+piece_selectionne = None
+joueur_actuel = 'white'
+
+def est_blanche(piece):
+    return piece in [imagePionblanc, imageTourblanc, imageFoublanc, imageCavalierblanc, imageReineblanc, imageRoiblanc]
+
+def est_noire(piece):
+    return piece in [imagePionnoir, imageTournoir, imageFounoir, imageCavaliernoir, imageReinenoir, imageRoinoir]
 
 def dessiner():
-    global imagePionnoir, imagePionblanc, imageTournoir, imageTourblanc
-    global imageFounoir, imageFoublanc, imageCavaliernoir, imageCavalierblanc
-    global imageReinenoir, imageReineblanc, imageRoinoir, imageRoiblanc
-    global fenetre
-    
     couleurs = [pygame.Color(240, 217, 181), pygame.Color(181, 136, 99)]
     fenetre.fill((255, 255, 255))
     for row in range(Rows):
@@ -79,83 +77,110 @@ def dessiner():
         pygame.draw.rect(fenetre, (0, 255, 0), (piece_selectionne[0] * Square, piece_selectionne[1] * Square, Square, Square), 5)
     pygame.display.flip()
 
-        
-        
-   
-
 def gererClavierEtSouris():
     if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1 or 2 or 3: 
                 x, y = pygame.mouse.get_pos()
                 col = x // Square
                 row = y // Square
-              
                 
-                
-def mouvementpion(position_piece, new_position, joueur):
-     x, y = position_piece
-     new_x, new_y = new_position
-     if joueur == 'white':
-        if new_x == x and new_y == y - 1 and (new_x, new_y) not in pieces:
-            return True
-        if y == 6 and new_x == x and new_y == y - 2 and (new_x, new_y) not in pieces:
-            return True
-     elif joueur == 'black':
-        if new_x == x and new_y == y + 1 and (new_x, new_y) not in pieces:
-            return True
-        if y == 1 and new_x == x and new_y == y + 2 and (new_x, new_y) not in pieces:
-            return True
-     return False
-                 
-def mouvement_cavalier(position_piece, new_position):
+def mouvementtour(position_piece, new_position):
     x, y = position_piece
     new_x, new_y = new_position
-    if abs(new_x - x) == 2 and abs(new_y - y) == 1 or abs(new_x - x) == 1 and abs(new_y - y) == 2:
+    return x == new_x or y == new_y
+
+def mouvementfou(position_piece, new_position):
+    x, y = position_piece
+    new_x, new_y = new_position
+    return abs(new_x - x) == abs(new_y - y)
+
+def mouvementcavalier(position_piece, new_position):
+    x, y = position_piece
+    new_x, new_y = new_position
+    return (abs(new_x - x) == 2 and abs(new_y - y) == 1) or (abs(new_x - x) == 1 and abs(new_y - y) == 2)
+
+def mouvementreine(position_piece, new_position):
+    return mouvementtour(position_piece, new_position) or mouvementfou(position_piece, new_position)
+
+def mouvementroi(position_piece, new_position):
+    x, y = position_piece
+    new_x, new_y = new_position
+    return abs(new_x - x) <= 1 and abs(new_y - y) <= 1
+
+def mouvementpion(position_piece, new_position, player):
+    x, y = position_piece
+    new_x, new_y = new_position
+    direction = -1 if player == 'white' else 1
+    ligne_depart = 6 if player == 'white' else 1
+
+    if new_x == x and new_y == y + direction and (new_x, new_y) not in pieces:
         return True
-    return False    
-    
+    if y == ligne_depart and new_x == x and new_y == y + 2 * direction and (new_x, y + direction) not in pieces and (new_x, new_y) not in pieces:
+        return True
+    if abs(new_x - x) == 1 and new_y == y + direction and (new_x, new_y) in pieces:
+        if player == 'white' and est_noire(pieces[(new_x, new_y)]):
+            return True
+        if player == 'black' and est_blanche(pieces[(new_x, new_y)]):
+            return True
+    return False
 
-
-
-
-
-
+def promotionpion(position, player):
+    x, y = position
+    if player == 'white' and y == 0:
+        pieces[(x, y)] = imageReineblanc
+    elif player == 'black' and y == 7:
+        pieces[(x, y)] = imageReinenoir
 
 running = True
 while running:
     dessiner()
-  
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1 or 2 or 3: 
+            if event.button in [1, 2, 3]:
                 x, y = pygame.mouse.get_pos()
                 col = x // Square
                 row = y // Square
-
                 if not piece_selectionne:
-                    if (col, row) in pieces: 
-                        piece_selectionne = (col, row)
-                        print(f"Pièce sélectionnée à la position : {piece_selectionne}")
+                    if (col, row) in pieces:
+                        piece = pieces[(col, row)]
+                        if (joueur_actuel == 'white' and est_blanche(piece)) or (joueur_actuel == 'black' and est_noire(piece)):
+                            piece_selectionne = (col, row)
+                            print(f"Pièce sélectionnée à la position : {piece_selectionne}")
+                        else:
+                            print("Ce n'est pas votre tour ou pièce adverse.")
                     else:
                         print("Aucune pièce à cette position.")
                 else:
-                    if (col, row) not in pieces:  
-                        if piece_selectionne in pieces: 
-                            piece_image = pieces[piece_selectionne]
-                            if piece_image == imagePionnoir or piece_image == imagePionblanc:
-                                if mouvementpion(piece_selectionne, (col, row), joueur_actuel):
-                                    pieces[(col, row)] = pieces[piece_selectionne]
-                                    del pieces[piece_selectionne]
-                                    joueur_actuel = 'black' if joueur_actuel == 'white' else 'white'
-                            elif piece_image == imageCavaliernoir or piece_image == imageCavalierblanc:
-                                if mouvement_cavalier(piece_selectionne, (col, row)):
-                                    pieces[(col, row)] = pieces[piece_selectionne]
-                                    del pieces[piece_selectionne]
-                                    joueur_actuel = 'black' if joueur_actuel == 'white' else 'white'
+                    if piece_selectionne in pieces:
+                        piece_image = pieces[piece_selectionne]
+                        deplacement_valide = False
+
+                        if piece_image in [imagePionnoir, imagePionblanc]:
+                            deplacement_valide = mouvementpion(piece_selectionne, (col, row), joueur_actuel)
+                        elif piece_image in [imageCavaliernoir, imageCavalierblanc]:
+                            deplacement_valide = mouvementcavalier(piece_selectionne, (col, row))
+                        elif piece_image in [imageTournoir, imageTourblanc]:
+                            deplacement_valide = mouvementtour(piece_selectionne, (col, row))
+                        elif piece_image in [imageFounoir, imageFoublanc]:
+                            deplacement_valide = mouvementfou(piece_selectionne, (col, row))
+                        elif piece_image in [imageReinenoir, imageReineblanc]:
+                            deplacement_valide = mouvementreine(piece_selectionne, (col, row))
+                        elif piece_image in [imageRoinoir, imageRoiblanc]:
+                            deplacement_valide = mouvementroi(piece_selectionne, (col, row))
+
+                        if deplacement_valide:
+                            if (col, row) not in pieces or \
+                               (joueur_actuel == 'white' and est_noire(pieces.get((col, row)))) or \
+                               (joueur_actuel == 'black' and est_blanche(pieces.get((col, row)))):
+                                pieces[(col, row)] = pieces[piece_selectionne]
+                                del pieces[piece_selectionne]
+                                if piece_image in [imagePionnoir, imagePionblanc]:
+                                    promotionpion((col, row), joueur_actuel)
+                                joueur_actuel = 'black' if joueur_actuel == 'white' else 'white'
+                            else:
+                                print("Impossible de capturer votre propre pièce.")
                     piece_selectionne = None
 
 pygame.quit()
